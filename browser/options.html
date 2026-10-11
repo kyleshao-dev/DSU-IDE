@@ -1,0 +1,7 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>DSU IDE · 浏览器连接</title>
+<link rel="stylesheet" href="options.css"><main><div class="badge">DSU IDE / 0.1.1</div>
+<h1>把题目带进编辑器。</h1><p>先在 IDE 中执行「DSU: 复制浏览器配对令牌」，再粘贴到下方。请勿分享此令牌。</p>
+<form id="connect"><label>配对令牌<input id="token" type="password" required autocomplete="off"></label><label>本机端口<input id="port" type="number" value="27121" min="1024" max="65535" required></label><button>保存并测试连接</button></form>
+<h2>添加自己的 OJ</h2><p>先在 IDE 的配置文件添加 OJ 适配器，再授权对应网站。授权后刷新题目页。</p>
+<form id="authorize"><label>网站地址<input id="origin" type="url" placeholder="https://oj.example.com" required></label><button>授权这个网站</button></form>
+<output id="status" role="status"></output><p class="foot">Chrome · Edge · 内置浏览器免配对</p></main><script src="options.js"></script></html>

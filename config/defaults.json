@@ -1,0 +1,414 @@
+{
+  "version": 1,
+  "defaultLanguage": "cpp",
+  "timeoutMs": 2000,
+  "compileTimeoutMs": 30000,
+  "comparison": "tokens",
+  "languages": [
+    {
+      "id": "cpp",
+      "name": "C++20",
+      "extension": "cpp",
+      "vscode": "cpp",
+      "run": [
+        "{exe}"
+      ],
+      "starter": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <numeric>\n#include <string>\n#include <queue>\n#include <map>\n#include <set>\n#include <cmath>\nusing namespace std;\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    return 0;\n}\n",
+      "compile": [
+        "g++",
+        "-std=c++20",
+        "-O2",
+        "{source}",
+        "-o",
+        "{exe}"
+      ]
+    },
+    {
+      "id": "c",
+      "name": "C17",
+      "extension": "c",
+      "vscode": "c",
+      "run": [
+        "{exe}"
+      ],
+      "starter": "#include <stdio.h>\nint main(void) {\n    return 0;\n}\n",
+      "compile": [
+        "gcc",
+        "-std=c17",
+        "-O2",
+        "{source}",
+        "-o",
+        "{exe}"
+      ]
+    },
+    {
+      "id": "python",
+      "name": "Python 3",
+      "extension": "py",
+      "vscode": "python",
+      "run": [
+        "python3",
+        "{source}"
+      ],
+      "starter": "import sys\n\ndef main():\n    pass\n\nif __name__ == \"__main__\":\n    main()\n"
+    },
+    {
+      "id": "java",
+      "name": "Java",
+      "extension": "java",
+      "vscode": "java",
+      "run": [
+        "java",
+        "-cp",
+        "{build}",
+        "Main"
+      ],
+      "starter": "import java.io.*;\nimport java.util.*;\npublic class Main {\n    public static void main(String[] args) throws Exception {\n    }\n}\n",
+      "compile": [
+        "javac",
+        "-encoding",
+        "UTF-8",
+        "-d",
+        "{build}",
+        "{source}"
+      ],
+      "sourceName": "Main.java"
+    },
+    {
+      "id": "javascript",
+      "name": "JavaScript (Node.js)",
+      "extension": "js",
+      "vscode": "javascript",
+      "run": [
+        "node",
+        "{source}"
+      ],
+      "starter": "const fs = require('node:fs');\nconst input = fs.readFileSync(0, 'utf8');\n"
+    },
+    {
+      "id": "typescript",
+      "name": "TypeScript",
+      "extension": "ts",
+      "vscode": "typescript",
+      "run": [
+        "node",
+        "{build}/main.js"
+      ],
+      "starter": "declare function require(name: string): any;\nconst input: string = require('node:fs').readFileSync(0, 'utf8');\n",
+      "compile": [
+        "tsc",
+        "{source}",
+        "--target",
+        "ES2022",
+        "--module",
+        "commonjs",
+        "--outDir",
+        "{build}"
+      ],
+      "sourceName": "main.ts"
+    },
+    {
+      "id": "go",
+      "name": "Go",
+      "extension": "go",
+      "vscode": "go",
+      "run": [
+        "{exe}"
+      ],
+      "starter": "package main\n\nfunc main() {\n}\n",
+      "compile": [
+        "go",
+        "build",
+        "-o",
+        "{exe}",
+        "{source}"
+      ]
+    },
+    {
+      "id": "rust",
+      "name": "Rust",
+      "extension": "rs",
+      "vscode": "rust",
+      "run": [
+        "{exe}"
+      ],
+      "starter": "fn main() {\n}\n",
+      "compile": [
+        "rustc",
+        "--edition=2021",
+        "--crate-name",
+        "solution",
+        "-O",
+        "{source}",
+        "-o",
+        "{exe}"
+      ]
+    },
+    {
+      "id": "csharp",
+      "name": "C# (Mono)",
+      "extension": "cs",
+      "vscode": "csharp",
+      "run": [
+        "mono",
+        "{exe}"
+      ],
+      "starter": "using System;\nclass MainClass {\n    static void Main() {\n    }\n}\n",
+      "compile": [
+        "mcs",
+        "-out:{exe}",
+        "{source}"
+      ]
+    },
+    {
+      "id": "kotlin",
+      "name": "Kotlin/JVM",
+      "extension": "kt",
+      "vscode": "kotlin",
+      "run": [
+        "java",
+        "-jar",
+        "{build}/main.jar"
+      ],
+      "starter": "fun main() {\n}\n",
+      "compile": [
+        "kotlinc",
+        "{source}",
+        "-include-runtime",
+        "-d",
+        "{build}/main.jar"
+      ]
+    },
+    {
+      "id": "swift",
+      "name": "Swift",
+      "extension": "swift",
+      "vscode": "swift",
+      "run": [
+        "{exe}"
+      ],
+      "starter": "import Foundation\n",
+      "compile": [
+        "swiftc",
+        "-O",
+        "{source}",
+        "-o",
+        "{exe}"
+      ]
+    },
+    {
+      "id": "ruby",
+      "name": "Ruby",
+      "extension": "rb",
+      "vscode": "ruby",
+      "run": [
+        "ruby",
+        "{source}"
+      ],
+      "starter": "input = STDIN.read\n"
+    },
+    {
+      "id": "php",
+      "name": "PHP",
+      "extension": "php",
+      "vscode": "php",
+      "run": [
+        "php",
+        "{source}"
+      ],
+      "starter": "<?php\n$input = stream_get_contents(STDIN);\n"
+    },
+    {
+      "id": "pascal",
+      "name": "Free Pascal",
+      "extension": "pas",
+      "vscode": "pascal",
+      "run": [
+        "{exe}"
+      ],
+      "starter": "program Solution;\nbegin\nend.\n",
+      "compile": [
+        "fpc",
+        "-O2",
+        "-o{exe}",
+        "{source}"
+      ]
+    },
+    {
+      "id": "lua",
+      "name": "Lua",
+      "extension": "lua",
+      "vscode": "lua",
+      "run": [
+        "lua",
+        "{source}"
+      ],
+      "starter": "local input = io.read(\"*a\")\n"
+    },
+    {
+      "id": "haskell",
+      "name": "Haskell",
+      "extension": "hs",
+      "vscode": "haskell",
+      "run": [
+        "{exe}"
+      ],
+      "starter": "main :: IO ()\nmain = pure ()\n",
+      "compile": [
+        "ghc",
+        "-O2",
+        "-outputdir",
+        "{build}",
+        "-o",
+        "{exe}",
+        "{source}"
+      ]
+    },
+    {
+      "id": "scala",
+      "name": "Scala",
+      "extension": "scala",
+      "vscode": "scala",
+      "run": [
+        "scala",
+        "{source}"
+      ],
+      "starter": "object Main extends App {\n}\n"
+    }
+  ],
+  "adapters": [
+    {
+      "id": "Codeforces",
+      "name": "Codeforces",
+      "hosts": [
+        "codeforces.com",
+        "www.codeforces.com"
+      ],
+      "problemPattern": "^/(?:problemset/problem|contest|gym)/(\\d+)/(?:problem/)?([A-Za-z0-9]+)/?$",
+      "title": ".problem-statement .title",
+      "statement": ".problem-statement",
+      "inputs": ".sample-test .input pre",
+      "outputs": ".sample-test .output pre",
+      "submit": {
+        "url": "/contest/{1}/submit",
+        "codeSelector": "textarea[name=\"source\"]",
+        "languageSelector": "select[name=\"programTypeId\"]",
+        "submitSelector": "input.submit",
+        "problemSelector": "select[name=\"submittedProblemIndex\"]",
+        "problemValue": "{2}",
+        "languageValues": {
+          "cpp": "GNU G++20",
+          "c": "GNU GCC",
+          "python": "Python 3",
+          "java": "Java",
+          "javascript": "Node.js",
+          "go": "Go",
+          "rust": "Rust",
+          "kotlin": "Kotlin"
+        }
+      }
+    },
+    {
+      "id": "AtCoder",
+      "name": "AtCoder",
+      "hosts": [
+        "atcoder.jp"
+      ],
+      "problemPattern": "^/contests/([^/]+)/tasks/([^/]+)$",
+      "title": ".h2",
+      "statement": "#task-statement .lang-en, #task-statement",
+      "inputs": "#task-statement .lang-en section",
+      "outputs": "#task-statement .lang-en section",
+      "submit": {
+        "url": "/contests/{1}/submit?taskScreenName={2}",
+        "codeSelector": "textarea[name=\"sourceCode\"]",
+        "languageSelector": "select[name=\"data.LanguageId\"]",
+        "submitSelector": "#submit",
+        "languageValues": {
+          "cpp": "C++ 20",
+          "python": "Python",
+          "java": "Java",
+          "rust": "Rust",
+          "go": "Go",
+          "c": "C ("
+        }
+      }
+    },
+    {
+      "id": "Luogu",
+      "name": "洛谷",
+      "hosts": [
+        "www.luogu.com.cn",
+        "www.luogu.com"
+      ],
+      "problemPattern": "^/problem/([A-Za-z0-9_]+)/?$",
+      "title": "h1, .problem-title",
+      "statement": ".problem-content, .problem-card, article",
+      "inputs": ".sample input pre, .input pre",
+      "outputs": ".sample output pre, .output pre",
+      "submit": {
+        "kind": "luogu",
+        "url": "/problem/{1}",
+        "enableO2": true,
+        "languageValues": {
+          "cpp": "27", "c": "2", "python": "7", "java": "33",
+          "javascript": "9", "go": "14", "rust": "15", "csharp": "17",
+          "kotlin": "21", "ruby": "13", "php": "16", "pascal": "1",
+          "lua": "32", "haskell": "19", "scala": "22"
+        }
+      }
+    },
+    {
+      "id": "VJudge",
+      "name": "Virtual Judge",
+      "hosts": [
+        "vjudge.net"
+      ],
+      "problemPattern": "^/problem/([^/]+)$",
+      "title": "#prob-title",
+      "statement": "#prob-desc",
+      "inputs": ".sample-input",
+      "outputs": ".sample-output",
+      "sourceLink": "a#source, #prob-origin a, a.origin"
+    },
+    {
+      "id": "HDU",
+      "name": "HDU",
+      "hosts": [
+        "acm.hdu.edu.cn"
+      ],
+      "problemPattern": "^/showproblem\\.php$",
+      "title": "h1",
+      "statement": "body",
+      "inputs": ".sample-input",
+      "outputs": ".sample-output"
+    },
+    {
+      "id": "POJ",
+      "name": "POJ",
+      "hosts": [
+        "poj.org"
+      ],
+      "problemPattern": "^/problem$",
+      "title": ".ptt",
+      "statement": ".ptx",
+      "inputs": "pre.sio:nth-of-type(1)",
+      "outputs": "pre.sio:nth-of-type(2)"
+    }
+  ],
+  "templates": [
+    {
+      "name": "并查集",
+      "prefix": "dsu",
+      "language": "cpp",
+      "description": "路径压缩 + 按大小合并",
+      "body": "struct DSU {\n    vector<int> p, sz;\n    DSU(int n) : p(n), sz(n, 1) { iota(p.begin(), p.end(), 0); }\n    int find(int x) { return p[x] == x ? x : p[x] = find(p[x]); }\n    bool unite(int a, int b) {\n        a = find(a); b = find(b);\n        if (a == b) return false;\n        if (sz[a] < sz[b]) swap(a, b);\n        p[b] = a; sz[a] += sz[b];\n        return true;\n    }\n};\n"
+    },
+    {
+      "name": "快速输入",
+      "prefix": "fastio",
+      "language": "cpp",
+      "body": "ios::sync_with_stdio(false);\ncin.tie(nullptr);"
+    }
+  ]
+}

@@ -1,0 +1,172 @@
+{
+  "name": "dsu-ide",
+  "displayName": "DSU IDE",
+  "description": "DSU IDE 内置做题工作台",
+  "version": "0.1.2",
+  "publisher": "dsu",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.110.0"
+  },
+  "main": "./dist/extension.js",
+  "categories": [
+    "Other"
+  ],
+  "extensionKind": [
+    "ui"
+  ],
+  "enabledApiProposals": [
+    "browser"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "创建文件和运行代码需要信任工作区"
+    },
+    "virtualWorkspaces": false
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "dsu.openBrowser",
+        "title": "DSU: 打开内置浏览器",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "dsu.configure",
+        "title": "DSU: 编辑 OJ、语言与模板配置"
+      },
+      {
+        "command": "dsu.updateAdapters",
+        "title": "DSU: 更新内置 OJ 配置"
+      },
+      {
+        "command": "dsu.pair",
+        "title": "DSU: 复制浏览器配对令牌"
+      },
+      {
+        "command": "dsu.test",
+        "title": "DSU: 一键测试样例"
+      },
+      {
+        "command": "dsu.submit",
+        "title": "DSU: 提交当前题目"
+      },
+      {
+        "command": "dsu.record",
+        "title": "DSU: 打开当前题目的提交记录"
+      },
+      {
+        "command": "dsu.cancel",
+        "title": "DSU: 取消测试与待提交任务"
+      },
+      {
+        "command": "dsu.language",
+        "title": "DSU: 切换当前题目语言"
+      },
+      {
+        "command": "dsu.samples",
+        "title": "DSU: 显示样例面板"
+      },
+      {
+        "command": "dsu.saveTemplate",
+        "title": "DSU: 保存选中代码为模板"
+      },
+      {
+        "command": "dsu.setup",
+        "title": "DSU: 开始使用：选择默认语言"
+      },
+      {
+        "command": "dsu.doctor",
+        "title": "DSU: 检查语言环境"
+      },
+      {
+        "command": "dsu.openProblem",
+        "title": "DSU: 打开已导入题目"
+      },
+      {
+        "command": "dsu.refreshProblems",
+        "title": "DSU: 刷新题目列表",
+        "icon": "$(refresh)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "dsu.test",
+        "key": "ctrl+alt+t",
+        "mac": "cmd+alt+t"
+      }
+    ],
+    "configuration": {
+      "title": "DSU IDE",
+      "properties": {
+        "dsu.bridgePort": {
+          "type": "number",
+          "default": 27121,
+          "minimum": 1024,
+          "maximum": 65535,
+          "scope": "application",
+          "description": "外部浏览器连接端口，修改后重新加载窗口。"
+        },
+        "dsu.submissionBrowser": {
+          "type": "string",
+          "enum": [
+            "integrated",
+            "external"
+          ],
+          "default": "integrated",
+          "description": "提交时打开内置浏览器或系统默认浏览器（需安装 DSU Companion）。"
+        }
+      }
+    },
+    "configurationDefaults": {
+      "editor.snippetSuggestions": "top",
+      "editor.tabCompletion": "on",
+      "workbench.startupEditor": "none"
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "dsu.problems",
+          "name": "DSU 题目",
+          "when": "workspaceFolderCount == 1"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "dsu.problems",
+        "contents": "把题目、代码和样例保存在当前文件夹。\n[初始化工作区](command:dsu.setup)\n[打开 OJ 浏览器](command:dsu.openBrowser)\n[检查语言环境](command:dsu.doctor)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "dsu.openBrowser",
+          "when": "view == dsu.problems",
+          "group": "navigation"
+        },
+        {
+          "command": "dsu.refreshProblems",
+          "when": "view == dsu.problems",
+          "group": "navigation"
+        }
+      ]
+    },
+    "jsonValidation": [
+      {
+        "fileMatch": "**/.dsu/config.json",
+        "url": "./config.schema.json"
+      }
+    ]
+  },
+  "files": [
+    "dist/**",
+    "config.schema.json",
+    "README.md",
+    "LICENSE"
+  ]
+}

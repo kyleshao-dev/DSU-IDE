@@ -1,0 +1,11 @@
+node_modules/
+vendor/
+packages/
+dist/
+*.vsix
+.DS_Store
+.dsu/build/
+.dsu/local.json
+*.log
+test-results/
+playwright-report/

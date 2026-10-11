@@ -1,0 +1,41 @@
+{
+  "name": "dsu-ide-workspace",
+  "version": "0.1.2",
+  "private": true,
+  "description": "DSU IDE \u2014 Code OSS competitive programming distribution",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "test:e2e": "npm run build && playwright test",
+    "check": "npm run typecheck && npm test && npm run build",
+    "fork:prepare": "node scripts/prepare-fork.mjs",
+    "fork:sync": "node scripts/prepare-fork.mjs --sync",
+    "package:extension": "npm run build && node scripts/release.mjs",
+    "release:artifacts": "npm run build && node scripts/release.mjs",
+    "test:languages": "tsx scripts/verify-languages.ts",
+    "desktop:install": "node scripts/desktop.mjs install",
+    "desktop:build": "node scripts/desktop.mjs build",
+    "desktop:start": "node scripts/desktop.mjs start",
+    "desktop:package": "node scripts/desktop.mjs package",
+    "test:desktop": "node scripts/desktop.mjs smoke",
+    "test:packaged": "node scripts/desktop.mjs smoke-package"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.58.2",
+    "@types/chrome": "^0.1.0",
+    "@types/jsdom": "^21.1.7",
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.110.0",
+    "@vscode/vsce": "4.0.0",
+    "esbuild": "^0.25.0",
+    "fflate": "0.8.3",
+    "jsdom": "^26.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}

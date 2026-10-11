@@ -1,0 +1,84 @@
+# DSU IDE · 0.1.2
+
+基于 **Code OSS（VS Code 开源代码）** 的竞赛编程 IDE：题目、代码、样例在一个工作区里完成。
+
+这是第一期的**源码开发版本**，包含 Code OSS 定制脚本、内置做题模块和 Chrome / Edge Companion。不是已经打包签名的安装程序，也不是用 Monaco 模仿 VS Code 的网页。
+
+## 0.1.2 更新
+
+- 资源管理器中的「DSU 题目」按 OJ 展示已导入题目，一次点击打开代码、题面和样例。
+- 初始化向导选择默认语言，环境检查列出编译器与运行时的真实路径。
+- 样例面板直接添加、编辑、删除和保存样例，不必手改 JSON；保留空格与换行。
+- 配置 JSON 提供字段补全；取消测试不再显示成 RE，无法打开提交页时撤销排队任务。
+- 提供 VSIX、Companion ZIP、SHA256 校验文件，以及桌面安装、构建、启动、打包命令。
+
+## 功能
+
+- **移除扩展商店**：定制产品不配置 marketplace，源码补丁关闭 gallery 服务。保留内部扩展运行、语言基础功能与本地 VSIX 安装；扩展管理界面仍可管理本地扩展。
+- **真正的内置浏览器**：复用固定 Code OSS 版本的 Chromium 编辑器与 browser API，支持 OJ 登录和网页交互；不是受 iframe 限制的网页嵌套。
+- **一键创建题目**：OJ 页面右下角按钮 → `OJ 名称/题目名称.扩展名`；重复导入保留代码，同名不同题目使用短哈希区分。Windows 不允许的文件名字符自动替换。
+- **三栏工作流**：代码 / 原站题面 / 样例。样例支持编辑和新增，运行结果包含 AC、WA、CE、RE、TLE、OLE、耗时、实际输出和错误信息。
+- **17 种语言预设**：C、C++、Python、Java、JavaScript、TypeScript、Go、Rust、C#、Kotlin、Swift、Ruby、PHP、Pascal、Lua、Haskell、Scala。需要自行安装对应编译器或运行时；预设并不表示系统已经安装了它们。
+- **网页提交**：支持 Codeforces / AtCoder 表单提交及洛谷登录态接口提交。复用当前浏览器登录，不保存 OJ 密码。语言匹配有歧义时停止，提交任务最多消费一次；洛谷拿到记录编号后显示“已受理”并提供记录链接。
+- **VJudge 原站跳转**：优先读取来源链接，另有常用 OJ 题号映射；在原站创建题目并归档到原站文件夹。
+- **代码模板**：内置并查集、快速输入；选中代码保存为模板，输入关键字后出现在补全列表，支持 Tab 接受。
+- **可编辑配置**：`.dsu/config.json` 保存语言命令、OJ 解析/提交规则、模板、超时和比较模式。
+
+## OJ 支持范围
+
+| OJ | 题目与样例 | VJudge 原站映射 | 自动提交 |
+| --- | --- | --- | --- |
+| Codeforces（含 Gym） | DOM 解析 | 支持 | 已提供表单配置 |
+| AtCoder | 英文/日文样例，避免重复 | 常规 contest/task ID | 已提供表单配置 |
+| 洛谷 | 新版 `name/content`、旧版 JSON；刷新读取以避免 SPA 串题 | 支持 | 已实现浏览器登录态提交，返回记录链接；支持 `contestId` |
+| HDU | 经典 HTML 样例 | 支持 | 尚未内置，需要另行适配 |
+| POJ | 经典 HTML 样例 | 支持 | 尚未内置，需要另行适配 |
+| VJudge | 跳转原站后导入 | 支持来源链接 | 在原站提交 |
+| 自定义 OJ | 域名、正则、CSS 选择器 | 可配置来源链接 | 支持普通表单和已适配编辑器 |
+
+网站改版、Cloudflare 验证、登录过期、特殊判题、交互题以及 LeetCode 式函数题不能当作普通 stdin/stdout 题目保证兼容。洛谷验证码或权限错误会提示人工处理；网络中断后显示“结果未知”，不自动重试。0.1.2 未实现全站判题结果抓取；“已受理”不代表 AC。**提交路径通过模拟接口与表单夹具测试，没有对已登录 OJ 发出真实提交。** 当前站点核对与限制见 [OJ 适配说明](docs/OJ_SUPPORT.md)。
+
+## 快速开始
+
+```bash
+npm ci
+npm run check
+npm run release:artifacts
+```
+
+输出：
+
+- `packages/dsu-ide/`：内置做题扩展，可用于开发调试。
+- `dist/browser/`：Chrome / Edge 可加载的 MV3 扩展。
+- `dist/release/`：VSIX、Companion ZIP、已验证的 macOS arm64 桌面 ZIP 与 SHA256SUMS。其他系统需要在对应平台构建；桌面开发版未经签名和公证。
+
+普通 VS Code 可通过本仓库的 F5 配置开发调试，但完整内置浏览器需要支持相同 browser 提案 API 的版本。**推荐使用固定 Code OSS 定制构建**，见 [构建说明](docs/BUILD.md)。
+
+### 使用步骤
+
+1. 在 DSU IDE 打开一个本地做题文件夹并信任它。
+2. 执行 `DSU: 开始使用：选择默认语言`，再通过 `DSU: 检查语言环境` 检查工具链；需自定义时打开配置。
+3. 执行 `DSU: 打开内置浏览器`，进入题目，点击右下角「在 DSU IDE 创建题目」。
+4. 编辑代码，点击样例面板「一键测试」，或按 `Ctrl+Alt+T` / macOS `Cmd+Alt+T`。
+5. 按「提交」打开当前 OJ 的提交页。浏览器需已登录；语言配置必须能唯一选中网站编译器。查看 OJ 页面确认受理结果。
+
+**旧工作区升级：**执行 `DSU: 更新内置 OJ 配置`，选择「洛谷」及需要更新的其他站点。命令先备份完整配置，只替换选中的 OJ，保留其他自定义 OJ、语言、模板。随后重新加载 Companion 扩展并刷新题目页面。
+
+### Chrome / Edge
+
+打开 `chrome://extensions` 或 `edge://extensions`，开启开发者模式，加载 `dist/browser` 目录。点击扩展图标打开设置页，在 IDE 执行 `DSU: 复制浏览器配对令牌`，粘贴、保存并测试连接，然后刷新题目页。
+
+默认通过 `127.0.0.1:27121` 连接，仅接受配对令牌。令牌保存在 VS Code SecretStorage 和浏览器本机 storage，不放进仓库。多个 IDE 窗口需要不同的 `dsu.bridgePort`。外部浏览器提交请把 `dsu.submissionBrowser` 改为 `external`，并确保系统默认浏览器安装了 Companion。
+
+## 配置与开发
+
+- [构建 Code OSS 定制版本](docs/BUILD.md)
+- [语言、OJ 与模板配置](docs/CONFIGURATION.md)
+- [架构、验证与已知限制](docs/ARCHITECTURE.md)
+- [本次本地验证记录](docs/VALIDATION.md)
+- [上传到 GitHub 的命令](docs/GITHUB.md)
+- [更新记录](CHANGELOG.md)
+
+DSU 产品版本为 **0.1.2**；Code OSS 引擎保持上游版本用于扩展兼容性判断。产品全称中显示 DSU 版本，不把上游引擎版本强改成 0.1.2。
+
+MIT License。Code OSS 的版权和第三方声明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。

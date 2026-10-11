@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DSU IDE 工作区配置",
+  "type": "object",
+  "required": ["version", "defaultLanguage", "timeoutMs", "compileTimeoutMs", "comparison", "languages", "adapters", "templates"],
+  "properties": {
+    "version": { "const": 1 },
+    "defaultLanguage": { "type": "string", "description": "新题目的默认语言 ID，必须存在于 languages 中" },
+    "timeoutMs": { "type": "integer", "minimum": 100, "maximum": 300000, "description": "每个样例的运行时间上限（毫秒）" },
+    "compileTimeoutMs": { "type": "integer", "minimum": 100, "maximum": 300000 },
+    "comparison": { "enum": ["tokens", "exact", "trim"] },
+    "languages": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/language" } },
+    "adapters": { "type": "array", "items": { "$ref": "#/definitions/adapter" } },
+    "templates": { "type": "array", "items": { "$ref": "#/definitions/template" } }
+  },
+  "definitions": {
+    "command": { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "程序与参数数组，不通过 shell 执行。支持 {source}、{file}、{build}、{exe}" },
+    "language": {
+      "type": "object", "required": ["id", "name", "extension", "vscode", "run", "starter"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9+-]*$" }, "name": { "type": "string" },
+        "extension": { "type": "string", "pattern": "^[a-z0-9]+$" }, "vscode": { "type": "string" },
+        "sourceName": { "type": "string", "pattern": "^[\\w.-]+$" }, "starter": { "type": "string" },
+        "compile": { "$ref": "#/definitions/command" }, "run": { "$ref": "#/definitions/command" }
+      }
+    },
+    "adapter": {
+      "type": "object", "required": ["id", "name", "hosts", "problemPattern", "title", "statement", "inputs", "outputs"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" }, "name": { "type": "string" },
+        "hosts": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-z0-9.-]+$" } },
+        "problemPattern": { "type": "string", "description": "匹配题目 URL 路径的正则表达式；捕获组可用于提交 URL" },
+        "title": { "type": "string" }, "statement": { "type": "string" }, "inputs": { "type": "string" }, "outputs": { "type": "string" }, "sourceLink": { "type": "string" },
+        "submit": {
+          "type": "object", "required": ["url", "languageValues"],
+          "properties": {
+            "kind": { "enum": ["form", "luogu"] }, "url": { "type": "string" }, "enableO2": { "type": "boolean" },
+            "languageValues": { "type": "object", "additionalProperties": { "type": "string" } },
+            "codeSelector": { "type": "string" }, "languageSelector": { "type": "string" }, "submitSelector": { "type": "string" },
+            "problemSelector": { "type": "string" }, "problemValue": { "type": "string" }
+          }
+        }
+      }
+    },
+    "template": {
+      "type": "object", "required": ["name", "prefix", "language", "body"],
+      "properties": { "name": { "type": "string" }, "prefix": { "type": "string" }, "language": { "type": "string" }, "body": { "type": "string" }, "description": { "type": "string" } }
+    }
+  }
+}
