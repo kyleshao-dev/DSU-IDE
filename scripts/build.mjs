@@ -1,3 +1,4 @@
+import { browserIcons } from './browser-icons.mjs';
 import { build } from 'esbuild';
 import { mkdir, copyFile, cp } from 'node:fs/promises';
 await mkdir('packages/dsu-ide/dist', { recursive: true });
@@ -6,6 +7,7 @@ await build({ entryPoints: ['src/extension/main.ts'], bundle: true, platform: 'n
 await build({ entryPoints: ['src/page/client.ts'], bundle: true, platform: 'browser', format: 'iife', target: 'chrome120', outfile: 'packages/dsu-ide/dist/page.js' });
 await build({ entryPoints: ['src/page/worker.ts'], bundle: true, platform: 'browser', format: 'iife', target: 'chrome120', outfile: 'dist/browser/worker.js' });
 await cp('browser', 'dist/browser', { recursive: true });
+await browserIcons('dist/browser');
 await copyFile('packages/dsu-ide/dist/page.js', 'dist/browser/page.js');
 await copyFile('config/extension.json', 'packages/dsu-ide/package.json');
 await copyFile('config/config.schema.json', 'packages/dsu-ide/config.schema.json');

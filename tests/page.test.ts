@@ -2,9 +2,18 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { defaultConfig } from '../src/core/config';
-import { extractProblem, resolveVJudge, submissionFor } from '../src/page/extract';
+import { extractProblem, matchAdapter, resolveVJudge, submissionFor } from '../src/page/extract';
 import { fillSubmission } from '../src/page/fill';
 import { buildSync } from 'esbuild';
+
+test('Codeforces imports problem indexes but excludes submit and standings routes', () => {
+  for (const url of ['https://codeforces.com/problemset/problem/1/A', 'https://codeforces.com/contest/1234/problem/B2', 'https://codeforces.com/gym/100001/problem/A']) {
+    assert.equal(matchAdapter(url, defaultConfig.adapters)?.id, 'Codeforces');
+    const job = submissionFor(url, '', 'cpp', defaultConfig.adapters[0]);
+    assert.ok(job.kind !== 'luogu' && job.problem?.value);
+  }
+  for (const route of ['submit', 'standings', 'status', 'problems']) assert.equal(matchAdapter(`https://codeforces.com/contest/1234/${route}`, defaultConfig.adapters), undefined);
+});
 
 test('Codeforces div-based multiline and br-based samples keep newlines', () => {
   const doc = new JSDOM('<div class="problem-statement"><div class="title">A. Sum</div><div class="sample-test"><div class="input"><pre><div>2</div><div>1 2</div></pre></div><div class="output"><pre>3<br>4</pre></div></div></div>').window.document;

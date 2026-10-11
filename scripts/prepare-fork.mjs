@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { readFile, writeFile, mkdir, cp, access } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { brandProduct, disableGallery, galleryPath, restoreUpstreamOnboarding, onboardingPath, preserveCopilotRuntime, extensionPackagingPath } from './fork-patches.mjs';
+import { brandProduct, disableGallery, galleryPath, restoreUpstreamOnboarding, onboardingPath, preserveCopilotRuntime, extensionPackagingPath, defaultChineseLocale, bundledChineseFallback, localeMainPath, localeNlsPath, competitionPackaging, competitionContributions, desktopPackagingPath, desktopContributionsPath } from './fork-patches.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const upstream = JSON.parse(await readFile(path.join(root, 'config/upstream.json'), 'utf8'));
@@ -42,6 +42,11 @@ const onboardingFile = path.join(checkout, onboardingPath);
 await writeFile(onboardingFile, restoreUpstreamOnboarding(await readFile(onboardingFile, 'utf8')));
 const packagingFile = path.join(checkout, extensionPackagingPath);
 await writeFile(packagingFile, preserveCopilotRuntime(await readFile(packagingFile, 'utf8')));
+for (const [relative, patch] of [[localeMainPath, defaultChineseLocale], [localeNlsPath, bundledChineseFallback], [desktopPackagingPath, competitionPackaging], [onboardingPath, competitionContributions], [desktopContributionsPath, competitionContributions]]) {
+  const file = path.join(checkout, relative);
+  await writeFile(file, patch(await readFile(file, 'utf8')));
+}
+await cp(path.join(root, 'resources/vscode-language-pack-zh-hans'), path.join(checkout, 'extensions/vscode-language-pack-zh-hans'), { recursive: true });
 await cp(path.join(root, 'packages/dsu-ide'), path.join(checkout, 'extensions/dsu-ide'), { recursive: true });
 console.log(`DSU IDE ${upstream.dsuVersion} 源码已准备：${checkout}`);
 console.log(`请使用上游要求的 Node ${upstream.node}，按 docs/BUILD.md 安装依赖、编译和运行。`);

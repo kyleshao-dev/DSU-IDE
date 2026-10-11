@@ -27,6 +27,7 @@ test('sample editor adds, deletes, saves exact whitespace and renders source tex
     await page.route('https://dsu-panel.test/', route => route.fulfill({ contentType: 'text/html', body: html }));
     panel.show(record); await page.goto('https://dsu-panel.test/');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(record.title);
+    await page.getByLabel('更多操作').click();
     await page.getByRole('button', { name: '编辑样例' }).click();
     await expect.poll(() => html.includes('id="samples"')).toBe(true); await page.goto('https://dsu-panel.test/');
     await page.getByRole('button', { name: '添加样例' }).click();

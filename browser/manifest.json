@@ -3,14 +3,59 @@
   "name": "DSU IDE Companion",
   "description": "从 OJ 页面创建题目、导入样例并连接 DSU IDE 提交代码。",
   "version": "0.1.2",
-  "permissions": ["storage", "scripting"],
-  "host_permissions": ["http://127.0.0.1/*", "https://codeforces.com/*", "https://www.codeforces.com/*", "https://atcoder.jp/*", "https://www.luogu.com.cn/*", "https://www.luogu.com/*", "https://vjudge.net/*", "https://acm.hdu.edu.cn/*", "http://poj.org/*"],
-  "optional_host_permissions": ["https://*/*", "http://*/*"],
-  "background": { "service_worker": "worker.js" },
-  "action": { "default_title": "连接 DSU IDE" },
+  "permissions": [
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "https://codeforces.com/*",
+    "https://www.codeforces.com/*",
+    "https://atcoder.jp/*",
+    "https://www.luogu.com.cn/*",
+    "https://www.luogu.com/*",
+    "https://vjudge.net/*",
+    "https://acm.hdu.edu.cn/*",
+    "http://poj.org/*"
+  ],
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
+  "background": {
+    "service_worker": "worker.js"
+  },
+  "action": {
+    "default_title": "DSU IDE · 导入当前题目",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "32": "icon32.png"
+    }
+  },
   "options_page": "options.html",
-  "content_scripts": [{
-    "matches": ["https://codeforces.com/*", "https://www.codeforces.com/*", "https://atcoder.jp/*", "https://www.luogu.com.cn/*", "https://www.luogu.com/*", "https://vjudge.net/*", "https://acm.hdu.edu.cn/*", "http://poj.org/*"],
-    "js": ["page.js"], "run_at": "document_idle"
-  }]
+  "content_scripts": [
+    {
+      "matches": [
+        "https://codeforces.com/*",
+        "https://www.codeforces.com/*",
+        "https://atcoder.jp/*",
+        "https://www.luogu.com.cn/*",
+        "https://www.luogu.com/*",
+        "https://vjudge.net/*",
+        "https://acm.hdu.edu.cn/*",
+        "http://poj.org/*"
+      ],
+      "js": [
+        "page.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
 }

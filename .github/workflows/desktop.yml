@@ -31,10 +31,25 @@ jobs:
       - name: Test packaged desktop (macOS / Windows)
         if: runner.os != 'Linux'
         run: npm run test:packaged
+      - name: Test display language (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npm run test:locale
+      - name: Test display language (macOS / Windows)
+        if: runner.os != 'Linux'
+        run: npm run test:locale
+      - name: Test competition workbench (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npm run test:workbench
+      - name: Test competition workbench (macOS / Windows)
+        if: runner.os != 'Linux'
+        run: npm run test:workbench
       - uses: actions/upload-artifact@v4
         with:
           name: dsu-desktop-${{ matrix.os }}
           path: |
             vendor/VSCode-*/
             dist/validation/packaged-smoke.json
+            dist/validation/locale-*
+            dist/validation/home-empty.png
+            dist/validation/workbench-*
           if-no-files-found: error

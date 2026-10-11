@@ -35,11 +35,13 @@ export async function createHarness(transport: Transport) {
   const posts: { url: string; body: string; headers: Record<string, string> }[] = [];
   const logs: string[] = [];
   let mode: 'accepted' | 'captcha' = 'accepted';
+  let importDelay = 0;
   const token = makeToken();
   const handler: RpcHandler = async (op, value) => {
     const payload = value as any;
     if (op === 'adapters') return defaultConfig.adapters;
     if (op === 'import') {
+      if (importDelay) await new Promise(resolve => setTimeout(resolve, importDelay));
       const record = await importProblem(folder, payload, defaultConfig);
       imports.push(record); return { file: record.file };
     }
@@ -98,13 +100,23 @@ export async function createHarness(transport: Transport) {
     await context.route('**/*', route);
     const page = await context.newPage();
     let pair: ((value?: string) => Promise<Page>) | undefined;
+    let popup: (() => Promise<Page>) | undefined;
     if (transport === 'extension') {
       const worker = context.serviceWorkers()[0] || await context.waitForEvent('serviceworker');
       const id = new URL(worker.url()).host;
+      popup = async () => {
+        // Load the actual popup document in a background tab and keep the OJ
+        // tab active, as it is when a toolbar popup is opened in Chromium.
+        const target = await worker.evaluate(async url => (await chrome.tabs.query({})).find(t => t.url === url)?.id, page.url());
+        const panel = await context!.newPage();
+        await worker.evaluate(async tabId => { await chrome.tabs.update(tabId!, { active: true }); }, target);
+        await panel.goto(`chrome-extension://${id}/popup.html`);
+        return panel;
+      };
       pair = async (value = token) => {
         const options = await context!.newPage();
         await options.goto(`chrome-extension://${id}/options.html`);
-        await options.locator('#token').fill(value); await options.locator('#port').fill(String(port));
+        await options.locator('#token').fill(value); await options.locator('#port').fill(String(value.startsWith('{') ? 27121 : port));
         await options.getByRole('button', { name: '保存并测试连接' }).click();
         return options;
       };
@@ -144,7 +156,8 @@ export async function createHarness(transport: Transport) {
       (integration as any).start(); register(page);
     }
     return {
-      context, page, folder, token, port, imports, receipts, posts, logs, pair, close,
+      context, page, folder, token, port, imports, receipts, posts, logs, pair, popup, close,
+      setImportDelay(value: number) { importDelay = value; },
       setMode(value: typeof mode) { mode = value; },
       enqueue(url: string, code = 'int main() { return 0; }') {
         const adapter = defaultConfig.adapters.find(a => a.hosts.includes(new URL(url).hostname))!;

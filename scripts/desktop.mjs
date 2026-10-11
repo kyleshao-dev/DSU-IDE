@@ -41,6 +41,7 @@ else if (mode === 'package') {
   if (temporary && process.platform === 'linux' && process.env.CI) args.push('--no-sandbox');
   try {
   if (mode === 'smoke-package') {
+    process.env.DSU_EXPECTED_LANGUAGE = 'zh-cn';
     const packaged = path.join(path.dirname(checkout), `VSCode-${process.platform}-${process.arch}`);
     const product = JSON.parse(await readFile(path.join(checkout, 'product.json'), 'utf8'));
     let executable, appRoot;

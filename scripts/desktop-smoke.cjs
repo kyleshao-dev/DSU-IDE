@@ -9,6 +9,11 @@ exports.run = async () => {
   const root = vscode.workspace.workspaceFolders[0].uri.fsPath;
   const extension = vscode.extensions.getExtension('dsu.dsu-ide');
   assert.ok(extension, 'DSU built-in extension must be discoverable');
+  if (process.env.DSU_EXPECTED_LANGUAGE) {
+    assert.equal(vscode.extensions.getExtension('vscode.copilot'), undefined);
+    assert.equal(vscode.workspace.getConfiguration('chat').get('disableAIFeatures'), true);
+  }
+  if (process.env.DSU_EXPECTED_LANGUAGE) assert.equal(vscode.env.language, process.env.DSU_EXPECTED_LANGUAGE, 'Packaged app should default to Simplified Chinese');
   assert.equal(await fs.realpath(extension.extensionPath), await fs.realpath(process.env.DSU_EXPECTED_EXTENSION_ROOT), 'Must test the built-in DSU module, not a development override');
   await extension.activate();
   const server=http.createServer((req,res)=>res.end('<!doctype html><h1>Desktop A+B</h1><article>Add numbers</article><pre class="input">20 30\n</pre><pre class="output">50\n</pre>'));
@@ -33,13 +38,29 @@ exports.run = async () => {
     await send('Input.dispatchMouseEvent',{type:'mousePressed',...point,button:'left',clickCount:1},sessionId);
     await send('Input.dispatchMouseEvent',{type:'mouseReleased',...point,button:'left',clickCount:1},sessionId);
     const file=path.join(root,'DesktopFixture','Desktop A+B.js');
-    await waitFor(async()=>{try{await fs.access(file);return true;}catch{return false;}});
+    try { await waitFor(async()=>{try{await fs.access(file);return true;}catch{return false;}}); }
+    catch (error) {
+      const directory=path.join(process.env.DSU_SOURCE_ROOT,'dist/validation');await fs.mkdir(directory,{recursive:true});
+      const screenshot=await send('Page.captureScreenshot',{},sessionId);
+      await fs.writeFile(path.join(directory,'desktop-browser-failure.png'),Buffer.from(screenshot.data,'base64'));
+      const snapshot=await send('DOM.getDocument',{depth:-1,pierce:true},sessionId);
+      await fs.writeFile(path.join(directory,'desktop-browser-failure.json'),JSON.stringify(snapshot));
+      throw error;
+    }
     await fs.writeFile(file,"const a=require('fs').readFileSync(0,'utf8').trim().split(/\\s+/).map(Number);console.log(a[0]+a[1]);");
     const doc=await vscode.workspace.openTextDocument(file);await vscode.window.showTextDocument(doc);
     const results=await vscode.commands.executeCommand('dsu.test');
     assert.equal(results?.[0]?.status,'AC');
     const completion=await vscode.commands.executeCommand('vscode.executeCompletionItemProvider',doc.uri,new vscode.Position(0,0));
     assert.ok(completion.items.some(i=>i.label==='dsutest'));
-    await fs.writeFile(path.join(root,'desktop-smoke.json'),JSON.stringify({version:extension.packageJSON.version,import:true,browser:true,test:results[0].status,template:true},null,2));
+    const previousClipboard = await vscode.env.clipboard.readText();
+    try {
+      await vscode.commands.executeCommand('dsu.pair');
+      const pairing = JSON.parse(await vscode.env.clipboard.readText());
+      assert.equal(pairing.dsu, 1);
+      assert.equal(pairing.port, vscode.workspace.getConfiguration('dsu').get('bridgePort', 27121));
+      assert.ok(typeof pairing.token === 'string' && pairing.token.length >= 32);
+    } finally { await vscode.env.clipboard.writeText(previousClipboard); }
+    await fs.writeFile(path.join(root,'desktop-smoke.json'),JSON.stringify({version:extension.packageJSON.version,language:vscode.env.language,pairing:true,import:true,browser:true,test:results[0].status,template:true},null,2));
   } finally {await session?.close();await tab?.close();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
 };

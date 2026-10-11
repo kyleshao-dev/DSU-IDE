@@ -284,7 +284,7 @@
         "codeforces.com",
         "www.codeforces.com"
       ],
-      "problemPattern": "^/(?:problemset/problem|contest|gym)/(\\d+)/(?:problem/)?([A-Za-z0-9]+)/?$",
+      "problemPattern": "^/(?:problemset/problem|contest|gym)/(\\d+)/(?:problem/)?([A-Za-z][0-9]*)/?$",
       "title": ".problem-statement .title",
       "statement": ".problem-statement",
       "inputs": ".sample-test .input pre",

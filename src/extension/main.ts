@@ -10,6 +10,7 @@ import { receiptMessage, validateReceipt } from '../core/submission';
 import type { ProblemRecord, Submission } from '../core/types';
 import { BrowserIntegration } from './browser';
 import { ProblemPanel } from './panel';
+import { HomePanel } from './home';
 import { ProblemTree } from './tree';
 import { inspectToolchains } from '../core/toolchains';
 
@@ -31,6 +32,11 @@ export async function activate(context: vscode.ExtensionContext) {
   const outstanding = new Map<string, { url: string; expires: number; problemUrl: string; job: Submission }>();
   const recordUrls = new Map<string, string>();
   const panel = new ProblemPanel(async (cmd, payload) => { try { return await vscode.commands.executeCommand(`dsu.${cmd}`, payload); } catch (e) { report(e); } });
+  const home = new HomePanel(async (name, value) => {
+    if (name === 'openFolder') return vscode.commands.executeCommand('workbench.action.files.openFolder');
+    return vscode.commands.executeCommand(`dsu.${name}`, value);
+  });
+  context.subscriptions.push(home);
   const tree = new ProblemTree(async () => vscode.workspace.workspaceFolders?.length ? listProblems(root(), await config()) : [], report);
   context.subscriptions.push(tree, vscode.window.registerTreeDataProvider('dsu.problems', tree));
   const show = async (record: ProblemRecord, browser = true) => {
@@ -142,8 +148,15 @@ export async function activate(context: vscode.ExtensionContext) {
     if (!url) throw new Error('当前会话没有此题已受理的提交记录');
     await openSubmissionPage(url);
   });
-  command('openBrowser', async () => {
-    const value = await vscode.window.showInputBox({ prompt: 'OJ 网址', value: 'https://codeforces.com/problemset' });
+  command('files', () => vscode.commands.executeCommand('workbench.view.explorer'));
+  command('home', async () => {
+    await vscode.commands.executeCommand('workbench.action.closeSidebar');
+    const folder = vscode.workspace.workspaceFolders?.length === 1 ? root() : undefined;
+    const cfg = folder ? await config() : defaultConfig;
+    home.show(folder ? path.basename(folder) : undefined, folder ? await listProblems(folder, cfg) : [], cfg.languages.find(l => l.id === cfg.defaultLanguage)?.name || cfg.defaultLanguage, context.extension.packageJSON.version);
+  });
+  command('openBrowser', async (url?: string) => {
+    const value = typeof url === 'string' && url.trim() ? url.trim() : await vscode.window.showInputBox({ prompt: 'OJ 网址', value: 'https://codeforces.com/problemset' });
     if (!value) return; const u = new URL(value);
     if (!['http:', 'https:'].includes(u.protocol)) throw new Error('只支持 HTTP/HTTPS 地址');
     await browsers.open(u.href);
@@ -239,9 +252,14 @@ export async function activate(context: vscode.ExtensionContext) {
   void selectFile(vscode.window.activeTextEditor).catch(report);
   let token = await context.secrets.get('bridge-token');
   if (!token) { token = makeToken(); await context.secrets.store('bridge-token', token); }
-  command('pair', async () => { await vscode.env.clipboard.writeText(token!); void vscode.window.showInformationMessage('配对令牌已复制，请粘贴到 Chrome / Edge 扩展设置。'); });
+  const bridgePort = vscode.workspace.getConfiguration('dsu').get<number>('bridgePort', 27121);
+  command('pair', async () => {
+    trusted();
+    await vscode.env.clipboard.writeText(JSON.stringify({ dsu: 1, token, port: bridgePort }));
+    void vscode.window.showInformationMessage('配对信息已复制，请粘贴到 Chrome / Edge 的连接设置，端口将自动填写。');
+  });
   try {
-    const port = vscode.workspace.getConfiguration('dsu').get<number>('bridgePort', 27121);
+    const port = bridgePort;
     const server = await createBridge(token, rpc, port);
     context.subscriptions.push({ dispose() { server.close(); server.closeAllConnections(); } });
     output.appendLine(`DSU IDE 0.1.2 · 本地桥接 127.0.0.1:${port}`);
@@ -252,5 +270,9 @@ export async function activate(context: vscode.ExtensionContext) {
     for (const [id, job] of outstanding) if (job.expires < Date.now()) { outstanding.delete(id); void vscode.window.showWarningMessage('DSU: 提交任务未收到回执。请检查 OJ 是否已受理，再决定是否重试。'); }
   }, 5000);
   context.subscriptions.push({ dispose() { clearInterval(expiry); } });
+  context.subscriptions.push(vscode.window.registerWebviewPanelSerializer('dsu.home', {
+    async deserializeWebviewPanel(restored) { restored.dispose(); await vscode.commands.executeCommand('dsu.home'); }
+  }));
+  if (!vscode.window.tabGroups.all.some(group => group.tabs.length)) await vscode.commands.executeCommand('dsu.home');
 }
 export function deactivate() {}

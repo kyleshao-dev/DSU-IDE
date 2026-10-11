@@ -123,3 +123,24 @@ shasum -a 256 -c SHA256SUMS
 ```
 
 扩展附件生成脚本也会为同目录当前版本的桌面 ZIP 更新校验值。交付应用测试报告位于 `dist/validation/packaged-smoke.json`；Windows/Linux 尚待实际执行对应平台工作流验收。
+
+
+## 中文界面
+
+`fork:prepare` / `fork:sync` 会复制仓库自带的简体中文资源，并将未设置语言时的启动默认值设为 `zh-cn`。首次启动直接读取随包资源，不依赖扩展商店。用户已有的显示语言设置和 `--locale` 优先；若曾明确选过英文，可执行 `Configure Display Language`，选择 `中文(简体)` 后重启。开发源码模式受上游 `VSCODE_DEV` 限制仍可能显示英文，最终语言验收使用 `npm run test:packaged`。官方尚未翻译的字符串保留英文。
+
+可运行 `npm run test:locale` 对已打包应用验证默认中文和显式英文，测试使用独立临时用户目录，截图保存到 `dist/validation/`。Linux 无桌面环境时使用 `xvfb-run -a npm run test:locale`。
+
+
+## 竞赛精简构建
+
+默认禁用内置 AI，精简工作台入口；桌面打包跳过 Copilot 编译并排除无关扩展，具体清单见 `scripts/fork-patches.mjs` 的 `omittedExtensions`。Git、调试、终端、内置浏览器和语言基础功能保留。部分工作台服务被多个功能共享，因此仍随 Code OSS 引擎提供；不承诺删除所有底层 AI/远程源码或降低指定内存比例。用户已有显式设置优先于新的默认布局；若旧工作区仍显示聊天，可在设置中启用 `chat.disableAIFeatures`。
+
+Chrome/Edge 的安装及发布见随附件提供的 `BROWSER_EXTENSION.md`，隐私说明为 `BROWSER_PRIVACY.md`。
+
+
+## DSU 独立界面
+
+起始页自动出现在空编辑器窗口，提供题目链接、已导入题目与设置菜单；可从编辑器标题栏主页按钮或 `DSU: 打开主页` 返回。文件列表在主页设置菜单中打开，辅助样例操作在「更多」菜单。设计取舍见 `UI_DESIGN.md`。
+
+`npm run test:locale` 验证中文、英文、无工作区启动及主页重启恢复。`npm run test:workbench` 在临时工作区和本地 OJ 夹具中检查主页打开题目、真实样例按钮及样例编辑入口，截图保存为 `dist/validation/workbench-ac.png`。所有测试使用独立用户目录。

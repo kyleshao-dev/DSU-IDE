@@ -19,7 +19,8 @@
     "browser"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onWebviewPanel:dsu.home"
   ],
   "capabilities": {
     "untrustedWorkspaces": {
@@ -45,11 +46,12 @@
       },
       {
         "command": "dsu.pair",
-        "title": "DSU: 复制浏览器配对令牌"
+        "title": "DSU: 复制浏览器配对信息"
       },
       {
         "command": "dsu.test",
-        "title": "DSU: 一键测试样例"
+        "title": "DSU: 一键测试样例",
+        "icon": "$(play)"
       },
       {
         "command": "dsu.submit",
@@ -91,6 +93,11 @@
         "command": "dsu.refreshProblems",
         "title": "DSU: 刷新题目列表",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "dsu.home",
+        "title": "DSU: 打开主页",
+        "icon": "$(home)"
       }
     ],
     "keybindings": [
@@ -125,7 +132,23 @@
     "configurationDefaults": {
       "editor.snippetSuggestions": "top",
       "editor.tabCompletion": "on",
-      "workbench.startupEditor": "none"
+      "workbench.startupEditor": "none",
+      "chat.disableAIFeatures": true,
+      "chat.titleBar.signIn.enabled": false,
+      "workbench.secondarySideBar.defaultVisibility": "hidden",
+      "window.commandCenter": false,
+      "workbench.layoutControl.enabled": false,
+      "editor.minimap.enabled": false,
+      "breadcrumbs.enabled": false,
+      "workbench.tips.enabled": false,
+      "telemetry.telemetryLevel": "off",
+      "workbench.activityBar.location": "hidden",
+      "workbench.statusBar.visible": false,
+      "workbench.editor.showTabs": "single",
+      "explorer.compactFolders": false,
+      "files.exclude": {
+        "**/.dsu": true
+      }
     },
     "views": {
       "explorer": [
@@ -153,6 +176,30 @@
           "command": "dsu.refreshProblems",
           "when": "view == dsu.problems",
           "group": "navigation"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "dsu.home",
+          "group": "navigation@1"
+        },
+        {
+          "command": "dsu.test",
+          "when": "resourceScheme == file",
+          "group": "navigation@2"
+        },
+        {
+          "command": "dsu.submit",
+          "when": "resourceScheme == file",
+          "group": "1_dsu@1"
+        },
+        {
+          "command": "dsu.openProblem",
+          "group": "1_dsu@2"
+        },
+        {
+          "command": "dsu.openBrowser",
+          "group": "1_dsu@3"
         }
       ]
     },

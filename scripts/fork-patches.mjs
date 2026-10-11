@@ -47,3 +47,54 @@ export function brandProduct(product, version) {
   for (const field of ['extensionsGallery', 'voiceWsUrl', 'updateUrl', 'downloadUrl', 'reportIssueUrl']) delete branded[field];
   return branded;
 }
+
+export const localeMainPath = 'src/mainImpl.ts';
+export const localeNlsPath = 'src/vs/base/node/nls.ts';
+export function defaultChineseLocale(source) {
+  const original = "return typeof argvConfig?.locale === 'string' ? argvConfig.locale.toLowerCase() : undefined;";
+  const replacement = "return typeof argvConfig?.locale === 'string' ? argvConfig.locale.toLowerCase() : 'zh-cn'; // DSU: default display language";
+  if (source.includes(replacement)) return source;
+  if (!source.includes(original)) throw new Error('上游语言入口与固定版本不符');
+  return source.replace(original, replacement);
+}
+export function bundledChineseFallback(source) {
+  if (source.includes('// DSU: resolve the bundled language pack on first launch.')) return source;
+  const original = 'const languagePacks = await getLanguagePackConfigurations(userDataPath);';
+  if (!source.includes(original)) throw new Error('上游语言资源入口与固定版本不符');
+  return source.replace(original, `// DSU: resolve the bundled language pack on first launch.
+		const languagePacks = await getLanguagePackConfigurations(userDataPath) ?? {};
+		if (!languagePacks['zh-cn']) {
+			const packRoot = join(nlsMetadataPath, '..', 'extensions', 'vscode-language-pack-zh-hans');
+			const manifest = JSON.parse(await promises.readFile(join(packRoot, 'package.json'), 'utf-8'));
+			const translations: Record<string, string> = {};
+			for (const entry of manifest.contributes.localizations[0].translations) {
+				translations[entry.id] = join(packRoot, entry.path);
+			}
+			languagePacks['zh-cn'] = { hash: manifest.dsuTranslationHash, label: '中文(简体)', extensions: [], translations };
+		}`);
+}
+
+export const omittedExtensions = ['copilot', 'github-authentication', 'microsoft-authentication', 'github', 'mermaid-markdown-features', 'ipynb', 'emmet', 'npm', 'grunt', 'gulp', 'jake', 'extension-editing', 'simple-browser', 'html-language-features', 'css-language-features'];
+export const desktopPackagingPath = 'build/gulpfile.vscode.ts';
+export const desktopContributionsPath = 'src/vs/workbench/workbench.desktop.main.ts';
+export function competitionPackaging(source) {
+  if (source.includes('// DSU: omit the Copilot extension from desktop builds.')) return source;
+  const task = '\t\t\tcompileCopilotExtensionBuildTask,\n';
+  const shim = '\t\tprepareBuiltInCopilotRipgrepShim(platform, arch, builtInCopilotExtensionDir, appNodeModulesDir);';
+  if (!source.includes(task) || !source.includes(shim)) throw new Error('上游桌面打包任务与固定版本不符');
+  return source.replace(', compileCopilotExtensionBuildTask }', ' }')
+    .replace(task, '\t\t\t// DSU: omit the Copilot extension from desktop builds.\n')
+    .replace("['.build/extensions/**', ...platformSpecificBuiltInExtensionsExclusions]", "['.build/extensions/**', ...platformSpecificBuiltInExtensionsExclusions, " + omittedExtensions.map(name => JSON.stringify('!.build/extensions/' + name + '/**')).join(', ') + ']')
+    .replace(shim, '\t\tif (fs.existsSync(builtInCopilotExtensionDir)) {\n' + shim + '\n\t\t}');
+}
+export function competitionContributions(source) {
+  const excluded = [
+    './contrib/remote/browser/remote.contribution.js',
+    './contrib/remote/electron-browser/remote.contribution.js',
+    './contrib/remoteTunnel/electron-browser/remoteTunnel.contribution.js',
+    './contrib/remoteCodingAgents/browser/remoteCodingAgents.contribution.js',
+    './contrib/chat/electron-browser/tunnelHost.contribution.js'
+  ];
+  for (const name of excluded) source = source.replace(`import '${name}';`, `// DSU: omitted non-competition UI: ${name}`);
+  return source;
+}

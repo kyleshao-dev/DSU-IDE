@@ -17,10 +17,12 @@ const archive = {};
 for (const name of await readdir(path.join(root, 'dist/browser'))) archive[name] = new Uint8Array(await readFile(path.join(root, 'dist/browser', name)));
 archive['LICENSE'] = new Uint8Array(await readFile(path.join(root, 'LICENSE')));
 await writeFile(path.join(output, companion), zipSync(archive, { level: 9 }));
-await copyFile(path.join(root, 'docs/BUILD.md'), path.join(output, 'BUILD.md'));
+const documents = ['BUILD.md', 'BROWSER_EXTENSION.md', 'BROWSER_PRIVACY.md', 'UI_DESIGN.md'];
+for (const name of documents) await copyFile(path.join(root, 'docs', name), path.join(output, name));
 const sums = [];
+const screenshots = (await readdir(output)).filter(name => ['companion-settings.png', 'companion-popup.png'].includes(name));
 const desktops = (await readdir(output)).filter(name => name.startsWith(`DSU-IDE-${version}-`) && name.endsWith('.zip')).sort();
-for (const name of [vsix, companion, 'BUILD.md', ...desktops]) {
+for (const name of [vsix, companion, ...documents, ...desktops, ...screenshots]) {
   const hash = createHash('sha256');
   for await (const chunk of createReadStream(path.join(output, name))) hash.update(chunk);
   sums.push(`${hash.digest('hex')}  ${name}`);
