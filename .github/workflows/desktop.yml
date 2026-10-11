@@ -49,6 +49,7 @@ jobs:
           path: |
             vendor/VSCode-*/
             dist/validation/packaged-smoke.json
+            dist/validation/app-size.json
             dist/validation/locale-*
             dist/validation/home-empty.png
             dist/validation/workbench-*

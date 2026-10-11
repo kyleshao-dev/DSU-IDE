@@ -11,7 +11,6 @@ import type { ProblemRecord, Submission } from '../core/types';
 import { BrowserIntegration } from './browser';
 import { ProblemPanel } from './panel';
 import { HomePanel } from './home';
-import { ProblemTree } from './tree';
 import { inspectToolchains } from '../core/toolchains';
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -37,10 +36,9 @@ export async function activate(context: vscode.ExtensionContext) {
     return vscode.commands.executeCommand(`dsu.${name}`, value);
   });
   context.subscriptions.push(home);
-  const tree = new ProblemTree(async () => vscode.workspace.workspaceFolders?.length ? listProblems(root(), await config()) : [], report);
-  context.subscriptions.push(tree, vscode.window.registerTreeDataProvider('dsu.problems', tree));
   const show = async (record: ProblemRecord, browser = true) => {
-    active = record; tree.refresh();
+    active = record;
+    await vscode.commands.executeCommand('workbench.view.explorer');
     const document = await vscode.workspace.openTextDocument(path.join(root(), record.file));
     await vscode.window.showTextDocument(document, { viewColumn: vscode.ViewColumn.One, preview: false });
     if (browser) await browsers.open(record.url);
@@ -96,7 +94,8 @@ export async function activate(context: vscode.ExtensionContext) {
     await inside(folder, path.resolve(folder, record.file));
     active = record; return { folder, record, cfg };
   };
-  command('refreshProblems', () => tree.refresh());
+  // Keep the old command available for existing shortcuts; files now have one native tree.
+  command('refreshProblems', () => vscode.commands.executeCommand('workbench.files.action.refreshFilesExplorer'));
   command('openProblem', async (url?: string) => {
     const records = await listProblems(trusted(), await config());
     const record = url ? records.find(r => r.url === url) : (await vscode.window.showQuickPick(records.map(record => ({ label: record.title, description: `${record.oj} · ${record.language}`, record })), { title: '打开已导入题目' }))?.record;
@@ -110,7 +109,7 @@ export async function activate(context: vscode.ExtensionContext) {
     cfg.defaultLanguage = choice.id;
     const file = await initializeConfig(folder); await inside(folder, file);
     await writeFile(file, JSON.stringify(cfg, null, 2) + '\n');
-    await vscode.commands.executeCommand('dsu.problems.focus');
+    await vscode.commands.executeCommand('workbench.view.explorer');
     void vscode.window.showInformationMessage('工作区已准备好。打开 OJ 题目后，点击页面右下角创建题目。', '打开浏览器').then(action => { if (action) void vscode.commands.executeCommand('dsu.openBrowser'); });
   });
   command('doctor', async () => {
@@ -150,8 +149,8 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   command('files', () => vscode.commands.executeCommand('workbench.view.explorer'));
   command('home', async () => {
-    await vscode.commands.executeCommand('workbench.action.closeSidebar');
     const folder = vscode.workspace.workspaceFolders?.length === 1 ? root() : undefined;
+    if (folder) await vscode.commands.executeCommand('workbench.view.explorer');
     const cfg = folder ? await config() : defaultConfig;
     home.show(folder ? path.basename(folder) : undefined, folder ? await listProblems(folder, cfg) : [], cfg.languages.find(l => l.id === cfg.defaultLanguage)?.name || cfg.defaultLanguage, context.extension.packageJSON.version);
   });
@@ -234,7 +233,9 @@ export async function activate(context: vscode.ExtensionContext) {
       });
     }
   }));
+  let selectionVersion = 0;
   const selectFile = async (editor: vscode.TextEditor | undefined) => {
+    const version = ++selectionVersion;
     if (!editor || !vscode.workspace.workspaceFolders?.length) return;
     if (editor.document.uri.scheme !== 'file') return;
     const folder = root(); const meta = path.join(folder, '.dsu/problems');
@@ -244,7 +245,21 @@ export async function activate(context: vscode.ExtensionContext) {
         await inside(folder, path.join(meta, f));
         const record: ProblemRecord = JSON.parse(await readFile(path.join(meta, f), 'utf8'));
         const selected = recordForFile(record, folder, editor.document.uri.fsPath);
-        if (selected) { validateProblem(selected, await config()); active = selected; panel.show(selected); break; }
+        if (selected) {
+          validateProblem(selected, await config());
+          if (version !== selectionVersion || vscode.window.activeTextEditor !== editor) return;
+          // Explorer opens in the focused group, which may currently contain samples or the browser.
+          // Move the code tab rather than duplicating it; the new active-editor event shows samples.
+          if (editor.viewColumn !== vscode.ViewColumn.One) {
+            await vscode.commands.executeCommand('workbench.action.moveEditorToFirstGroup');
+            return;
+          }
+          const switchedProblem = active?.url !== selected.url;
+          active = selected;
+          panel.show(selected);
+          if (switchedProblem) await browsers.open(selected.url);
+          break;
+        }
       } catch (e) { output.appendLine(`忽略无效题目记录 ${f}: ${(e as Error).message}`); }
     }
   };

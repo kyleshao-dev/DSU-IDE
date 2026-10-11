@@ -11,8 +11,8 @@ const mode = process.argv[2];
 if (!['install', 'build', 'start', 'package', 'smoke', 'smoke-package'].includes(mode)) throw new Error('用法：desktop.mjs install|build|start|package|smoke|smoke-package');
 if (process.versions.node !== upstream.node) throw new Error(`桌面构建需要 Node ${upstream.node}，当前 ${process.versions.node}。请先切换 Node。`);
 await access(path.join(checkout, 'package.json'));
-const run = (command, args, cwd = checkout) => new Promise((resolve, reject) => {
-  const child = spawn(command, args, { cwd, stdio: 'inherit', shell: false });
+const run = (command, args, cwd = checkout, env = process.env) => new Promise((resolve, reject) => {
+  const child = spawn(command, args, { cwd, env, stdio: 'inherit', shell: false });
   child.on('error', reject); child.on('exit', code => code === 0 ? resolve() : reject(new Error(`${command} 退出码 ${code}`)));
 });
 // Invoking npm's JavaScript CLI avoids .cmd shell quoting on Windows.
@@ -23,7 +23,9 @@ else if (mode === 'build') { await run(process.execPath, ['scripts/build.mjs'], 
 else if (mode === 'package') {
   await run(process.execPath, ['scripts/build.mjs'], root); await run(process.execPath, ['scripts/prepare-fork.mjs', '--sync'], root);
   if (!['darwin', 'linux', 'win32'].includes(process.platform) || !['arm64', 'x64'].includes(process.arch)) throw new Error('未配置此平台的打包任务');
-  await npm(['run', 'gulp', '--', `vscode-${process.platform}-${process.arch}`]);
+  // Release builds minify the workbench and strip development source maps.
+  await run(process.execPath, [process.env.npm_execpath, 'run', 'gulp', '--', `vscode-${process.platform}-${process.arch}-min`], checkout, { ...process.env, CI: '1' });
+  await run(process.execPath, ['scripts/verify-app-size.mjs'], root);
   console.log(`桌面产物位于 ${path.join(path.dirname(checkout), `VSCode-${process.platform}-${process.arch}`)}；尚未签名。`);
 } else {
   let temporary;
@@ -58,4 +60,3 @@ else if (mode === 'package') {
   if (temporary) { await mkdir(path.join(root, 'dist/validation'), { recursive: true }); await copyFile(path.join(temporary, 'workspace/desktop-smoke.json'), path.join(root, mode === 'smoke-package' ? 'dist/validation/packaged-smoke.json' : 'dist/validation/desktop-smoke.json')); }
   } finally { if (temporary) await rm(temporary, { recursive: true, force: true }); }
 }
-

@@ -53,6 +53,13 @@ exports.run = async () => {
     assert.equal(results?.[0]?.status,'AC');
     const completion=await vscode.commands.executeCommand('vscode.executeCompletionItemProvider',doc.uri,new vscode.Position(0,0));
     assert.ok(completion.items.some(i=>i.label==='dsutest'));
+    assert.ok((await vscode.workspace.findFiles('**/*.js')).some(uri=>uri.fsPath===file), 'Packaged file search must still work');
+    const terminalMarker=path.join(root,'terminal-smoke.txt');
+    const terminal=vscode.window.createTerminal({name:'DSU terminal smoke',shellPath:process.env.DSU_TEST_NODE,shellArgs:['-e',`require('fs').writeFileSync(${JSON.stringify(terminalMarker)},'ok')`]});
+    try {
+      terminal.show(true);
+      await waitFor(async()=>{try{return (await fs.readFile(terminalMarker,'utf8'))==='ok';}catch{return false;}});
+    } finally {terminal.dispose();}
     const previousClipboard = await vscode.env.clipboard.readText();
     try {
       await vscode.commands.executeCommand('dsu.pair');
@@ -61,6 +68,6 @@ exports.run = async () => {
       assert.equal(pairing.port, vscode.workspace.getConfiguration('dsu').get('bridgePort', 27121));
       assert.ok(typeof pairing.token === 'string' && pairing.token.length >= 32);
     } finally { await vscode.env.clipboard.writeText(previousClipboard); }
-    await fs.writeFile(path.join(root,'desktop-smoke.json'),JSON.stringify({version:extension.packageJSON.version,language:vscode.env.language,pairing:true,import:true,browser:true,test:results[0].status,template:true},null,2));
+    await fs.writeFile(path.join(root,'desktop-smoke.json'),JSON.stringify({version:extension.packageJSON.version,language:vscode.env.language,pairing:true,import:true,browser:true,test:results[0].status,template:true,fileSearch:true,terminal:true},null,2));
   } finally {await session?.close();await tab?.close();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
 };

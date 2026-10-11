@@ -77,6 +77,48 @@ export function bundledChineseFallback(source) {
 export const omittedExtensions = ['copilot', 'github-authentication', 'microsoft-authentication', 'github', 'mermaid-markdown-features', 'ipynb', 'emmet', 'npm', 'grunt', 'gulp', 'jake', 'extension-editing', 'simple-browser', 'html-language-features', 'css-language-features'];
 export const desktopPackagingPath = 'build/gulpfile.vscode.ts';
 export const desktopContributionsPath = 'src/vs/workbench/workbench.desktop.main.ts';
+export const agentEnablementPath = 'src/vs/platform/agentHost/browser/agentHostEnablementService.ts';
+export const windowsServicePath = 'src/vs/platform/windows/electron-main/windowsMainService.ts';
+export const chatStartupPath = 'src/vs/workbench/contrib/chat/browser/chat.shared.contribution.ts';
+export const releaseOmittedExtensions = ['markdown-language-features', 'markdown-math', 'terminal-suggest', 'ms-vscode.vscode-js-profile-table', 'notebook-renderers'];
+
+export function disableAgentRuntime(source) {
+  if (source.includes('// DSU: no AI runtime in the competition distribution.')) return source;
+  const original = '\t\tsuper(!isWeb, configurationService, contextKeyService, managedSettingsService);';
+  if (!source.includes(original)) throw new Error('上游 AI 启用服务与固定版本不符');
+  return source.replace("import { isWeb } from '../../../base/common/platform.js';\n", '')
+    .replace(original, '\t\t// DSU: no AI runtime in the competition distribution.\n\t\tsuper(false, configurationService, contextKeyService, managedSettingsService);');
+}
+
+export function redirectAgentWindows(source) {
+  if (source.includes('// DSU: agent links open the regular competition editor.')) return source;
+  const original = "\t\tthis.logService.trace('windowsManager#openAgentsWindow');";
+  if (!source.includes(original)) throw new Error('上游 AI 窗口服务与固定版本不符');
+  return source.replace(original, original + "\n\t\t// DSU: agent links open the regular competition editor.\n\t\tif (this.productService.applicationName === 'dsu-ide') {\n\t\t\treturn this.open(openConfig);\n\t\t}");
+}
+
+export function competitionChatStartup(source) {
+  const marker = '// DSU: omit AI account prompts and status initialization.';
+  if (source.includes(marker)) return source;
+  const continuation = "import './agentSessions/agentHost/codexContinuation.contribution.js';";
+  const status = "import { CodexStatusBarEntry } from './chatStatus/codexStatusEntry.js';";
+  const registration = 'registerWorkbenchContribution2(CodexStatusBarEntry.ID, CodexStatusBarEntry, WorkbenchPhase.BlockRestore);';
+  if (![continuation, status, registration].every(text => source.includes(text))) throw new Error('上游 AI 账号初始化与固定版本不符');
+  return source.replace(continuation, marker).replace(status, '').replace(registration, '');
+}
+
+export function releasePackaging(source) {
+  if (source.includes('// DSU: omit unavailable AI runtimes and release-only extras.')) return source.replaceAll('"!extensions/', '"!**/extensions/');
+  const originals = ['const sources = es.merge(src, extensions)', 'const deps = es.merge(cleanedDeps, copilotRuntimePrebuilds, osProxyResolverPlatformPackage)'];
+  if (!originals.every(text => source.includes(text))) throw new Error('上游发布过滤流程与固定版本不符');
+  for (const name of ['sessions.desktop.main.js', 'sessions.desktop.main.css', 'electron-browser/sessions.html', 'electron-browser/sessions.js']) {
+    source = source.replace(new RegExp("\\n\\t+['\"]vs/sessions/" + name.replaceAll('.', '\\.') + "['\"],?"), '');
+  }
+  const sourceExclusions = ['!out/vs/sessions/**', ...releaseOmittedExtensions.map(name => `!**/extensions/${name}/**`)];
+  const runtimeExclusions = ['!**/@github/copilot-sdk-{darwin,linux,linuxmusl,win32}-*/**', '!**/@microsoft/mxc-sdk/bin/**'];
+  return source.replace(originals[0], originals[0] + '\n\t\t\t.pipe(filter(' + JSON.stringify(['**', ...sourceExclusions]) + ', { dot: true }))')
+    .replace(originals[1], '// DSU: omit unavailable AI runtimes and release-only extras.\n\t\t' + originals[1] + '\n\t\t\t.pipe(filter(' + JSON.stringify(['**', ...runtimeExclusions]) + ', { dot: true }))');
+}
 export function competitionPackaging(source) {
   if (source.includes('// DSU: omit the Copilot extension from desktop builds.')) return source;
   const task = '\t\t\tcompileCopilotExtensionBuildTask,\n';

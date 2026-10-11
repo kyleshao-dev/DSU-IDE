@@ -25,7 +25,8 @@
     "test:desktop": "node scripts/desktop.mjs smoke",
     "test:packaged": "node scripts/desktop.mjs smoke-package",
     "test:locale": "node scripts/verify-locale.mjs",
-    "test:workbench": "node scripts/verify-workbench.mjs"
+    "test:workbench": "node scripts/verify-workbench.mjs",
+    "test:size": "node scripts/verify-app-size.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.58.2",

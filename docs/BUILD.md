@@ -52,9 +52,15 @@ npm run test:desktop
 npm run desktop:package
 # 验证交付应用中的内置模块（不依赖开发版模块）：
 npm run test:packaged
+# 检查解压后应用的 500 MB 上限：
+npm run test:size
 ```
 
 脚本检查 Node 版本和真实构建路径；桌面产物在真实上游目录的同级 `VSCode-<系统>-<架构>` 下。默认还提供 GitHub Actions 手动触发的 Build DSU desktop，三平台分别构建，运行结果需在上传后确认。
+
+`desktop:package` 使用上游 `-min` 发布任务，压缩工作台代码并剔除开发源码映射。打包流程排除 AI 会话窗口、Copilot 平台运行库、AI 沙盒原生二进制、Markdown 预览/公式扩展、终端建议、Notebook 渲染及 JS 性能分析表；保留 Chromium 内置浏览器、编辑器、本地扩展宿主、语言基础支持、终端、调试、Git、JSON 配置与 DSU 做题模块。AI 宿主启动被关闭，AI 窗口请求改为打开普通编辑器。
+
+打包后自动计算应用文件总量和实际磁盘分配，任一超过 **500,000,000 字节**就报错；不会以压缩 ZIP 的大小代替安装体积。结果写入 `dist/validation/app-size.json`，CI 也保存此报告。语言 SDK、做题工作区、缓存与构建源码位于应用之外，不属于这个安装包体积指标。
 
 上游体积与构建依赖较大。先按 [VS Code 源码构建文档](https://github.com/microsoft/vscode/wiki/How-to-Contribute) 安装系统依赖（Windows C++ build tools、macOS Xcode 命令行工具、Linux 编译与桌面库等），再执行：
 
@@ -141,6 +147,6 @@ Chrome/Edge 的安装及发布见随附件提供的 `BROWSER_EXTENSION.md`，隐
 
 ## DSU 独立界面
 
-起始页自动出现在空编辑器窗口，提供题目链接、已导入题目与设置菜单；可从编辑器标题栏主页按钮或 `DSU: 打开主页` 返回。文件列表在主页设置菜单中打开，辅助样例操作在「更多」菜单。设计取舍见 `UI_DESIGN.md`。
+起始页自动出现在空编辑器窗口，提供题目链接、已导入题目与设置菜单；可从编辑器标题栏主页按钮或 `DSU: 打开主页` 返回。题目与文件统一在左侧 VS Code 文件目录中显示，主页设置菜单可重新打开侧栏，辅助样例操作在「更多」菜单。设计取舍见 `UI_DESIGN.md`。
 
 `npm run test:locale` 验证中文、英文、无工作区启动及主页重启恢复。`npm run test:workbench` 在临时工作区和本地 OJ 夹具中检查主页打开题目、真实样例按钮及样例编辑入口，截图保存为 `dist/validation/workbench-ac.png`。所有测试使用独立用户目录。

@@ -91,7 +91,7 @@
       },
       {
         "command": "dsu.refreshProblems",
-        "title": "DSU: 刷新题目列表",
+        "title": "DSU: 刷新题目与文件",
         "icon": "$(refresh)"
       },
       {
@@ -150,32 +150,12 @@
         "**/.dsu": true
       }
     },
-    "views": {
-      "explorer": [
-        {
-          "id": "dsu.problems",
-          "name": "DSU 题目",
-          "when": "workspaceFolderCount == 1"
-        }
-      ]
-    },
-    "viewsWelcome": [
-      {
-        "view": "dsu.problems",
-        "contents": "把题目、代码和样例保存在当前文件夹。\n[初始化工作区](command:dsu.setup)\n[打开 OJ 浏览器](command:dsu.openBrowser)\n[检查语言环境](command:dsu.doctor)"
-      }
-    ],
     "menus": {
       "view/title": [
         {
           "command": "dsu.openBrowser",
-          "when": "view == dsu.problems",
-          "group": "navigation"
-        },
-        {
-          "command": "dsu.refreshProblems",
-          "when": "view == dsu.problems",
-          "group": "navigation"
+          "when": "view == workbench.explorer.fileView",
+          "group": "navigation@10"
         }
       ],
       "editor/title": [
